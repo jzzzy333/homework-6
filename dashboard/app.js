@@ -17,7 +17,7 @@ const loadData = async () => {
     $('#status').hide();
     renderCards(data);
     renderBarChart(data);
-    renderLineChart(data);
+    if (typeof renderLineChart === 'function') renderLineChart(data);
   } catch (error) {
     $('#status').text('加载失败：' + error.message).show();
   }
@@ -28,7 +28,7 @@ const renderCards = (data) => {
   data.series.forEach(s => {
     const total = s.counts.reduce((sum, n) => sum + n, 0);
     $('#cards').append(`
-      <div class="col-md-4">
+      <div class="col-md-4 col-lg-2">
         <div class="card">
           <div class="card-body">
             <h3 class="card-title h6">${s.category}</h3>
@@ -38,6 +38,26 @@ const renderCards = (data) => {
         </div>
       </div>
     `);
+  });
+};
+
+let barChart = null;
+
+const renderBarChart = (data) => {
+  if (barChart === null) {
+    barChart = echarts.init(document.querySelector('#bar-chart'));
+  }
+  barChart.setOption({
+    title: { text: '各月各品类借阅量', left: 'center' },
+    tooltip: { trigger: 'axis' },
+    legend: { bottom: 0 },
+    xAxis: { data: data.months },
+    yAxis: { name: '册' },
+    series: data.series.map(s => ({
+      name: s.category,
+      type: 'bar',
+      data: s.counts
+    }))
   });
 };
 
